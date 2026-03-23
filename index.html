@@ -1,537 +1,297 @@
-<!DOCTYPE html>
-<html lang="az">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Makeup Preference Game</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --rose: #e8366a;
-      --plum: #7c2d5e;
-      --cream: #fdf8f4;
-      --ink: #1a0e14;
-      --muted: #9e7d8e;
-      --border: #f0d0dc;
-      --shadow: 0 24px 64px rgba(124,45,94,0.13);
-    }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px; position: relative; overflow-x: hidden;
-    }
-
-    body::before {
-      content: ''; position: fixed; inset: 0;
-      background:
-        radial-gradient(ellipse 70% 55% at 5% 15%, rgba(232,54,106,0.08) 0%, transparent 55%),
-        radial-gradient(ellipse 55% 65% at 95% 85%, rgba(124,45,94,0.07) 0%, transparent 55%);
-      pointer-events: none;
-    }
-
-    body::after {
-      content: '✦ ✦ ✦'; position: fixed; top: 18px; right: 24px;
-      font-size: 9px; letter-spacing: 8px; color: rgba(232,54,106,0.2); pointer-events: none;
-    }
-
-    .app { width: 100%; max-width: 490px; position: relative; z-index: 1; }
-
-    /* Header */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-
-    .title-block .eyebrow {
-      font-size: 10px; font-weight: 600; letter-spacing: 3px;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 5px;
-    }
-
-    .title-block h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 26px; font-weight: 900; color: var(--ink); line-height: 1.1;
-    }
-
-    .title-block h1 em { font-style: italic; color: var(--rose); }
-
-    .counter-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-top: 2px; }
-
-    .counter-pill {
-      background: var(--ink); color: #fff;
-      padding: 7px 14px; border-radius: 999px;
-      font-size: 12px; font-weight: 600; white-space: nowrap;
-    }
-
-    .deck-label { font-size: 10px; color: var(--muted); font-weight: 500; }
-
-    /* Progress */
-    .progress-track {
-      width: 100%; height: 5px; background: var(--border);
-      border-radius: 999px; overflow: hidden; margin-bottom: 22px;
-    }
-
-    .progress-fill {
-      height: 100%; width: 0%;
-      background: linear-gradient(90deg, var(--rose), var(--plum));
-      border-radius: 999px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-    }
-
-    /* Card */
-    .card {
-      background: white; border: 1.5px solid var(--border);
-      border-radius: 22px; padding: 24px 22px 22px;
-      box-shadow: var(--shadow); margin-bottom: 14px;
-    }
-
-    .card-top {
-      font-size: 10px; font-weight: 700; letter-spacing: 2.5px;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 18px;
-      display: flex; align-items: center; gap: 6px;
-    }
-
-    .card-top span { background: #fdf0f5; color: var(--rose); padding: 3px 9px; border-radius: 6px; }
-
-    .vs-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
-
-    .brand-box {
-      background: #fdf8fb; border: 1.5px solid var(--border);
-      border-radius: 16px; padding: 18px 12px; text-align: center;
-      transition: border-color 0.2s, background 0.2s, transform 0.2s;
-    }
-
-    .brand-emoji { font-size: 28px; margin-bottom: 8px; line-height: 1; }
-
-    .brand-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 17px; font-weight: 700; color: var(--ink);
-      margin-bottom: 4px; line-height: 1.2;
-    }
-
-    .brand-desc { font-size: 11px; color: var(--muted); line-height: 1.4; font-weight: 500; }
-
-    .vs-divider {
-      font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900;
-      color: var(--border); line-height: 1; text-align: center; flex-shrink: 0;
-    }
-
-    .cat-pill {
-      display: inline-block; margin-top: 16px;
-      font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-      text-transform: uppercase; padding: 4px 10px; border-radius: 6px;
-    }
-
-    .cat-lip         { background: #fff0f0; color: #c0392b; }
-    .cat-foundation  { background: #fff9e8; color: #b07d1a; }
-    .cat-eye         { background: #f0f0ff; color: #5a3ab0; }
-    .cat-blush       { background: #fff0f8; color: #b03a72; }
-    .cat-skincare    { background: #f0fff8; color: #1a8a5a; }
-    .cat-mascara     { background: #f5f0ff; color: #6a3ab0; }
-    .cat-highlighter { background: #fffbf0; color: #a07820; }
-    .cat-perfume     { background: #f0f8ff; color: #2a6aa0; }
-
-    /* Buttons */
-    .answer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .utility-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-
-    .btn {
-      border: none; border-radius: 15px; padding: 15px 12px; cursor: pointer;
-      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      display: flex; align-items: center; justify-content: center; gap: 8px; line-height: 1;
-    }
-
-    .btn:hover  { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.13); }
-    .btn:active { transform: translateY(0); box-shadow: none; }
-
-    .btn-a       { background: #fce7ef; color: #c0205a; border: 1.5px solid #f5b8ce; }
-    .btn-b       { background: #ede7ff; color: #5c2daa; border: 1.5px solid #c8b0f0; }
-    .btn-both    { background: #e7fff5; color: #1a7a52; border: 1.5px solid #9fe0c4; }
-    .btn-neither { background: #f4f4f4; color: #666;    border: 1.5px solid #ddd; }
-    .btn-shuffle { background: white; color: var(--plum); border: 1.5px solid var(--border); font-size: 13px; }
-    .btn-reset   { background: var(--plum); color: white; font-size: 13px; }
-
-    .brand-box.chosen-a { border-color: #e8366a; background: #fce7ef; transform: scale(1.03); }
-    .brand-box.chosen-b { border-color: #7c3aed; background: #ede7ff; transform: scale(1.03); }
-
-    /* Results panel */
-    .results { background: white; border: 1.5px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 16px; }
-
-    .results-header {
-      background: linear-gradient(135deg, var(--rose), var(--plum));
-      color: white; padding: 14px 18px;
-      font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700;
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    .result-item {
-      display: flex; align-items: center; padding: 11px 16px;
-      border-bottom: 1px solid #fdf0f4; font-size: 13px; gap: 10px;
-    }
-
-    .result-item:last-child { border-bottom: none; }
-
-    .result-cat { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); min-width: 72px; }
-    .result-choice { font-weight: 700; color: var(--ink); flex: 1; }
-
-    .result-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
-    .badge-a       { background: #fce7ef; color: #c0205a; }
-    .badge-b       { background: #ede7ff; color: #5c2daa; }
-    .badge-both    { background: #e7fff5; color: #1a7a52; }
-    .badge-neither { background: #f4f4f4; color: #888; }
-
-    /* End screen */
-    .end-screen {
-      display: none; text-align: center;
-      padding: 36px 24px; background: white;
-      border: 1.5px solid var(--border); border-radius: 22px;
-      box-shadow: var(--shadow); margin-bottom: 16px;
-    }
-
-    .end-screen.show { display: block; animation: slideInRight 0.45s cubic-bezier(0.4,0,0.2,1); }
-
-    .end-emoji { font-size: 52px; margin-bottom: 14px; }
-
-    .end-title {
-      font-family: 'Playfair Display', serif; font-size: 25px;
-      font-weight: 900; color: var(--ink); margin-bottom: 8px;
-    }
-
-    .end-sub { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; }
-
-    /* Copy box — shows the text that will be copied */
-    .copy-box {
-      background: #fdf8fb; border: 1.5px dashed var(--border);
-      border-radius: 12px; padding: 14px 16px;
-      font-size: 13px; line-height: 1.8; color: var(--ink);
-      text-align: left; margin-bottom: 14px;
-      max-height: 200px; overflow-y: auto;
-      white-space: pre-wrap; font-family: 'DM Sans', sans-serif;
-    }
-
-    .btn-copy {
-      background: var(--rose); color: white; border: none;
-      border-radius: 15px; padding: 14px 28px;
-      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
-      cursor: pointer; width: 100%; margin-bottom: 10px;
-      transition: transform 0.15s, box-shadow 0.15s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-
-    .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,54,106,0.3); }
-
-    .copied-msg {
-      display: none; font-size: 13px; font-weight: 600;
-      color: #1a9e72; margin-bottom: 12px;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .copied-msg.show { display: block; }
-
-    .btn-end-reset {
-      background: white; color: var(--plum);
-      border: 1.5px solid var(--border); border-radius: 15px;
-      padding: 13px 28px; font-family: 'DM Sans', sans-serif;
-      font-size: 14px; font-weight: 700; cursor: pointer; width: 100%;
-      transition: transform 0.15s;
-    }
-
-    .btn-end-reset:hover { transform: translateY(-2px); }
-
-    /* Animations */
-    @keyframes slideInRight {
-      from { opacity: 0; transform: translateX(40px) scale(0.97); }
-      to   { opacity: 1; transform: translateX(0) scale(1); }
-    }
-    @keyframes slideInLeft {
-      from { opacity: 0; transform: translateX(-40px) scale(0.97); }
-      to   { opacity: 1; transform: translateX(0) scale(1); }
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; } to { opacity: 1; }
-    }
-
-    .card.anim-right { animation: slideInRight 0.38s cubic-bezier(0.4,0,0.2,1); }
-    .card.anim-left  { animation: slideInLeft  0.38s cubic-bezier(0.4,0,0.2,1); }
-
-    .footer-note { text-align: center; font-size: 11.5px; color: var(--muted); letter-spacing: 0.3px; margin-top: 4px; }
-  </style>
-</head>
-<body>
-<div class="app">
-
-  <div class="header">
-    <div class="title-block">
-      <div class="eyebrow">Brend Müqayisəsi</div>
-      <h1>Beauty <em>Quiz</em> 💄</h1>
-    </div>
-    <div class="counter-wrap">
-      <div class="counter-pill" id="counter">1 / 15</div>
-      <div class="deck-label" id="deckLabel">Keç və öyrən</div>
-    </div>
-  </div>
-
-  <div class="progress-track">
-    <div class="progress-fill" id="progressFill"></div>
-  </div>
-
-  <!-- Card -->
-  <div class="card" id="mainCard">
-    <div class="card-top">
-      <span id="cardCat">Dodaq</span>
-      Hansını bəyənirsən?
-    </div>
-    <div class="vs-row">
-      <div class="brand-box" id="boxA">
-        <div class="brand-emoji" id="emojiA">💋</div>
-        <div class="brand-name" id="nameA">Charlotte Tilbury</div>
-        <div class="brand-desc" id="descA">Pillow Talk Lipstick</div>
-      </div>
-      <div class="vs-divider">VS</div>
-      <div class="brand-box" id="boxB">
-        <div class="brand-emoji" id="emojiB">💄</div>
-        <div class="brand-name" id="nameB">MAC</div>
-        <div class="brand-desc" id="descB">Ruby Woo Lipstick</div>
-      </div>
-    </div>
-    <div><span class="cat-pill" id="catPill">Dodaq</span></div>
-  </div>
-
-  <!-- End screen -->
-  <div class="end-screen" id="endScreen">
-    <div class="end-emoji">💖</div>
-    <div class="end-title">Bitdi!</div>
-    <div class="end-sub" id="endSub"></div>
-    <div class="copy-box" id="copyBox"></div>
-    <button class="btn-copy" onclick="copyResults()">📋 Kopyala &amp; Göndər</button>
-    <div class="copied-msg" id="copiedMsg">✓ Kopyalandı! WhatsApp-da göndər 💌</div>
-    <button class="btn-end-reset" onclick="resetGame()">↺ Yenidən Başla</button>
-  </div>
-
-  <!-- Answer buttons -->
-  <div id="gameControls">
-    <div class="answer-row">
-      <button class="btn btn-a" onclick="choose('a')">
-        👍 <span id="btnALabel">A-nı sevirəm</span>
-      </button>
-      <button class="btn btn-b" onclick="choose('b')">
-        👍 <span id="btnBLabel">B-ni sevirəm</span>
-      </button>
-    </div>
-    <div class="answer-row" style="margin-bottom:10px">
-      <button class="btn btn-both"    onclick="choose('both')">💕 İkisini də</button>
-      <button class="btn btn-neither" onclick="choose('neither')">🙅 Heç birini</button>
-    </div>
-    <div class="utility-row">
-      <button class="btn btn-shuffle" onclick="shuffleCards()">🔀 Qarışdır</button>
-      <button class="btn btn-reset"   onclick="resetGame()">↺ Sıfırla</button>
-    </div>
-  </div>
-
-  <!-- Live results -->
-  <div class="results" id="resultsPanel" style="display:none">
-    <div class="results-header">💄 Seçimlər</div>
-    <div id="resultsList"></div>
-  </div>
-
-  <div class="footer-note">Hər kartda 2 brend — zövqünü kəşf et ✦</div>
-</div>
-
 <script>
-  const originalCards = [
-    { cat: "Dodaq", catClass: "cat-lip",
-      a: { emoji: "🪷", name: "Charlotte Tilbury", desc: "Pillow Talk Lipstick" },
-      b: { emoji: "💋", name: "MAC", desc: "Ruby Woo Lipstick" } },
-    { cat: "Dodaq", catClass: "cat-lip",
-      a: { emoji: "🩷", name: "Rare Beauty", desc: "Kind Words Lip Liner" },
-      b: { emoji: "💗", name: "NYX", desc: "Soft Matte Lip Cream" } },
-    { cat: "Fond de Ten", catClass: "cat-foundation",
-      a: { emoji: "✨", name: "Giorgio Armani", desc: "Luminous Silk Foundation" },
-      b: { emoji: "🌟", name: "Fenty Beauty", desc: "Pro Filt'r Foundation" } },
-    { cat: "Fond de Ten", catClass: "cat-foundation",
-      a: { emoji: "💛", name: "NARS", desc: "Natural Radiant Longwear" },
-      b: { emoji: "🌸", name: "Maybelline", desc: "Fit Me Foundation" } },
-    { cat: "Göz", catClass: "cat-eye",
-      a: { emoji: "🖤", name: "Urban Decay", desc: "Naked Eyeshadow Palette" },
-      b: { emoji: "💜", name: "Charlotte Tilbury", desc: "Luxury Palette" } },
-    { cat: "Göz", catClass: "cat-eye",
-      a: { emoji: "✏️", name: "Benefit", desc: "Precisely My Brow Pencil" },
-      b: { emoji: "🪄", name: "Anastasia Beverly Hills", desc: "Brow Definer" } },
-    { cat: "Blush", catClass: "cat-blush",
-      a: { emoji: "🍑", name: "Rare Beauty", desc: "Soft Pinch Liquid Blush" },
-      b: { emoji: "🌷", name: "NARS", desc: "Orgasm Blush" } },
-    { cat: "Blush", catClass: "cat-blush",
-      a: { emoji: "🌸", name: "Benefit", desc: "Dandelion Blush" },
-      b: { emoji: "💐", name: "Charlotte Tilbury", desc: "Cheek to Chic Blush" } },
-    { cat: "Maskara", catClass: "cat-mascara",
-      a: { emoji: "🖤", name: "Lancôme", desc: "Hypnôse Mascara" },
-      b: { emoji: "⚡", name: "Maybelline", desc: "Sky High Mascara" } },
-    { cat: "Maskara", catClass: "cat-mascara",
-      a: { emoji: "🌑", name: "Benefit", desc: "BADgal BANG! Mascara" },
-      b: { emoji: "✨", name: "Too Faced", desc: "Better Than Sex Mascara" } },
-    { cat: "Highlighter", catClass: "cat-highlighter",
-      a: { emoji: "⭐", name: "Fenty Beauty", desc: "Killawatt Highlighter" },
-      b: { emoji: "💫", name: "Becca", desc: "Shimmering Skin Perfector" } },
-    { cat: "Skincare", catClass: "cat-skincare",
-      a: { emoji: "💧", name: "La Mer", desc: "Moisturizing Cream" },
-      b: { emoji: "🌿", name: "Tatcha", desc: "The Water Cream" } },
-    { cat: "Skincare", catClass: "cat-skincare",
-      a: { emoji: "🧴", name: "CeraVe", desc: "Hydrating Cleanser" },
-      b: { emoji: "🌺", name: "Laneige", desc: "Lip Sleeping Mask" } },
-    { cat: "Ətir", catClass: "cat-perfume",
-      a: { emoji: "🌹", name: "YSL", desc: "Black Opium Perfume" },
-      b: { emoji: "🌸", name: "Chanel", desc: "Chance Eau Tendre" } },
-    { cat: "Ətir", catClass: "cat-perfume",
-      a: { emoji: "💎", name: "Viktor & Rolf", desc: "Flowerbomb" },
-      b: { emoji: "🌙", name: "Maison Margiela", desc: "Replica — Flower Market" } },
-  ];
+const CARDS = [
+  { cat:"Geyim", cls:"cat-geyim",
+    a:{emoji:"👗", name:"Elegant", desc:"Uzun paltar, klassik kəsim"},
+    b:{emoji:"👖", name:"Casual", desc:"Rahat, gündəlik stil"} },
+  { cat:"Geyim", cls:"cat-geyim",
+    a:{emoji:"🧥", name:"Oversized", desc:"Geniş, rahat, streetwear"},
+    b:{emoji:"👘", name:"Fitted", desc:"Bədənə oturan, şık kəsim"} },
+  { cat:"Geyim", cls:"cat-geyim",
+    a:{emoji:"🖤", name:"Minimalist", desc:"Sadə, tək rəng, clean look"},
+    b:{emoji:"🌈", name:"Colorful", desc:"Parlaq rənglər, pattern"} },
+  { cat:"Geyim", cls:"cat-geyim",
+    a:{emoji:"✨", name:"Glam", desc:"Parlaq, gecəlik, diqqət çəkən"},
+    b:{emoji:"🍂", name:"Boho", desc:"Doğal, sərbəst, romantic"} },
 
-  let cards = [...originalCards];
-  let currentIndex = 0;
-  const answers = [];
+  { cat:"Ayaqqabı", cls:"cat-ayaqqabi",
+    a:{emoji:"👠", name:"Topuklu", desc:"Stiletto, hündür, klassik"},
+    b:{emoji:"👟", name:"Sneaker", desc:"Rahat, idman, casual"} },
+  { cat:"Ayaqqabı", cls:"cat-ayaqqabi",
+    a:{emoji:"🥿", name:"Loafer", desc:"Elegantlıq + rahatlıq"},
+    b:{emoji:"👢", name:"Bot", desc:"Uzun, dəri, güclü görünüş"} },
+  { cat:"Ayaqqabı", cls:"cat-ayaqqabi",
+    a:{emoji:"🩴", name:"Sandal", desc:"Açıq, yay, minimal"},
+    b:{emoji:"🥾", name:"Platform", desc:"Yüksək taban, bold"} },
 
-  function renderCard(dir = 'right') {
-    if (currentIndex >= cards.length) { showEndScreen(); return; }
-    const c = cards[currentIndex];
-    document.getElementById('cardCat').textContent   = c.cat;
-    document.getElementById('emojiA').textContent    = c.a.emoji;
-    document.getElementById('nameA').textContent     = c.a.name;
-    document.getElementById('descA').textContent     = c.a.desc;
-    document.getElementById('emojiB').textContent    = c.b.emoji;
-    document.getElementById('nameB').textContent     = c.b.name;
-    document.getElementById('descB').textContent     = c.b.desc;
-    document.getElementById('btnALabel').textContent = c.a.name;
-    document.getElementById('btnBLabel').textContent = c.b.name;
-    const catPill = document.getElementById('catPill');
-    catPill.textContent = c.cat;
-    catPill.className = 'cat-pill ' + c.catClass;
-    document.getElementById('counter').textContent = `${currentIndex + 1} / ${cards.length}`;
-    document.getElementById('progressFill').style.width = `${(currentIndex / cards.length) * 100}%`;
-    document.getElementById('boxA').className = 'brand-box';
-    document.getElementById('boxB').className = 'brand-box';
-    const card = document.getElementById('mainCard');
-    card.classList.remove('anim-right', 'anim-left');
-    void card.offsetWidth;
-    card.classList.add(dir === 'right' ? 'anim-right' : 'anim-left');
-    setTimeout(() => card.classList.remove('anim-right', 'anim-left'), 420);
+  { cat:"Aksesuar", cls:"cat-aksesuar",
+    a:{emoji:"👜", name:"Mini çanta", desc:"Kiçik, elegant, trend"},
+    b:{emoji:"🎒", name:"Tote bag", desc:"Böyük, praktik, casual"} },
+  { cat:"Aksesuar", cls:"cat-aksesuar",
+    a:{emoji:"⌚", name:"Klassik saat", desc:"Qızıl/gümüş, elegantl"},
+    b:{emoji:"📿", name:"Zəncir/bilək", desc:"Layer görünüş, streetwear"} },
+  { cat:"Aksesuar", cls:"cat-aksesuar",
+    a:{emoji:"💍", name:"Minimalist üzük", desc:"Nazik, incə, sadə"},
+    b:{emoji:"💎", name:"Statement üzük", desc:"Böyük, parlaq, diqqət çəkən"} },
+  { cat:"Aksesuar", cls:"cat-aksesuar",
+    a:{emoji:"🕶", name:"Cat-eye eynək", desc:"Vintage, dramatik, retro"},
+    b:{emoji:"😎", name:"Oval eynək", desc:"Müasir, minimal, clean"} },
+
+  { cat:"Rəng", cls:"cat-reng",
+    a:{emoji:"🖤", name:"Dark tones", desc:"Qara, tünd, mysterious"},
+    b:{emoji:"🤍", name:"Nude tones", desc:"Bej, krem, soft"} },
+  { cat:"Rəng", cls:"cat-reng",
+    a:{emoji:"🌹", name:"Warm tones", desc:"Qırmızı, narıncı, qızılı"},
+    b:{emoji:"💙", name:"Cool tones", desc:"Mavi, yaşıl, gümüşü"} },
+  { cat:"Rəng", cls:"cat-reng",
+    a:{emoji:"🩷", name:"Pastel", desc:"Açıq çəhrayı, lila, sky blue"},
+    b:{emoji:"💜", name:"Bold colors", desc:"Parlaq, saturated, statement"} },
+
+  { cat:"Çəkici (özündə)", cls:"cat-cekici",
+    a:{emoji:"💄", name:"Makeup ilə", desc:"Tam makiyajlı, hazırlanmış"},
+    b:{emoji:"🌿", name:"Natural", desc:"Təbii görünüş, minimal makeup"} },
+  { cat:"Çəkici (özündə)", cls:"cat-cekici",
+    a:{emoji:"💇", name:"Uzun saç", desc:"Axan, düzlənmiş, romantic"},
+    b:{emoji:"✂️", name:"Qısa/orta saç", desc:"Cəsarətli, müasir, bold"} },
+
+  { cat:"Çəkici (kişidə)", cls:"cat-cekici",
+    a:{emoji:"🤵", name:"Elegantlıq", desc:"Kostyum, düzgün geyim, şık"},
+    b:{emoji:"🧢", name:"Casual cool", desc:"Rahat, streetwear, laid-back"} },
+  { cat:"Çəkici (kişidə)", cls:"cat-cekici",
+    a:{emoji:"💪", name:"Atletik görünüş", desc:"Fit, aktiv, güclü"},
+    b:{emoji:"📚", name:"Intellectual look", desc:"Sakit, düşüncəli, dərin"} },
+
+  { cat:"Sevmədiyi stil", cls:"cat-cekici-deyil",
+    a:{emoji:"❌", name:"Çox formal", desc:"Həmişə kostyum, rigidlik"},
+    b:{emoji:"❌", name:"Çox rahat", desc:"Həmişə tracksuit, əzginlik"} },
+  { cat:"Sevmədiyi stil", cls:"cat-cekici-deyil",
+    a:{emoji:"🚫", name:"Çox parlaq", desc:"Hər şey logo, çox rəng"},
+    b:{emoji:"🚫", name:"Çox qaranlıq", desc:"Həmişə qara, ağır görünüş"} },
+];
+
+let cards = [...CARDS];
+let idx = 0;
+let answers = [];
+
+function renderCard(dir = 'right') {
+  if (idx >= cards.length) {
+    showEnd();
+    return;
   }
 
-  function choose(choice) {
-    const c = cards[currentIndex];
-    let label = '', badgeClass = '', emoji = '';
-    if (choice === 'a') {
-      label = c.a.name; badgeClass = 'badge-a'; emoji = '👍';
-      document.getElementById('boxA').className = 'brand-box chosen-a';
-    } else if (choice === 'b') {
-      label = c.b.name; badgeClass = 'badge-b'; emoji = '👍';
-      document.getElementById('boxB').className = 'brand-box chosen-b';
-    } else if (choice === 'both') {
-      label = c.a.name + ' & ' + c.b.name; badgeClass = 'badge-both'; emoji = '💕';
-      document.getElementById('boxA').className = 'brand-box chosen-a';
-      document.getElementById('boxB').className = 'brand-box chosen-b';
-    } else {
-      label = 'Heç biri'; badgeClass = 'badge-neither'; emoji = '🙅';
+  const c = cards[idx];
+  document.getElementById('catTag').textContent = c.cat;
+  document.getElementById('catTag').className = 'cat-tag ' + c.cls;
+
+  document.getElementById('emojiA').textContent = c.a.emoji;
+  document.getElementById('nameA').textContent = c.a.name;
+  document.getElementById('descA').textContent = c.a.desc;
+
+  document.getElementById('emojiB').textContent = c.b.emoji;
+  document.getElementById('nameB').textContent = c.b.name;
+  document.getElementById('descB').textContent = c.b.desc;
+
+  document.getElementById('lblA').textContent = c.a.name;
+  document.getElementById('lblB').textContent = c.b.name;
+
+  document.getElementById('counter').textContent = `${idx + 1} / ${cards.length}`;
+  document.getElementById('progFill').style.width = `${(idx / cards.length) * 100}%`;
+
+  document.getElementById('boxA').className = 'brand-box';
+  document.getElementById('boxB').className = 'brand-box';
+
+  document.getElementById('commentInput').value = '';
+  document.getElementById('commentBox').classList.remove('open');
+  document.getElementById('toggleArrow').textContent = '▼';
+  document.getElementById('secretCard').style.display = 'block';
+
+  const card = document.getElementById('mainCard');
+  card.classList.remove('anim-r', 'anim-l');
+  void card.offsetWidth;
+  card.classList.add(dir === 'right' ? 'anim-r' : 'anim-l');
+  setTimeout(() => card.classList.remove('anim-r', 'anim-l'), 420);
+}
+
+function toggleComment() {
+  const box = document.getElementById('commentBox');
+  const arrow = document.getElementById('toggleArrow');
+  const open = box.classList.toggle('open');
+  arrow.textContent = open ? '▲' : '▼';
+}
+
+function choose(type) {
+  const c = cards[idx];
+  const comment = document.getElementById('commentInput').value.trim();
+
+  let label = '';
+  let emoji = '';
+
+  document.getElementById('boxA').className = 'brand-box';
+  document.getElementById('boxB').className = 'brand-box';
+
+  if (type === 'a') {
+    label = c.a.name;
+    emoji = '👍';
+    document.getElementById('boxA').className = 'brand-box chosen-a';
+  } else if (type === 'b') {
+    label = c.b.name;
+    emoji = '👍';
+    document.getElementById('boxB').className = 'brand-box chosen-b';
+  } else if (type === 'both') {
+    label = `${c.a.name} & ${c.b.name}`;
+    emoji = '💕';
+    document.getElementById('boxA').className = 'brand-box chosen-both';
+    document.getElementById('boxB').className = 'brand-box chosen-both';
+  } else {
+    label = 'Heç biri';
+    emoji = '🙅';
+  }
+
+  answers.push({
+    category: c.cat,
+    choice: label,
+    type,
+    emoji,
+    comment
+  });
+
+  updateResults();
+
+  setTimeout(() => {
+    idx++;
+    renderCard('right');
+  }, 260);
+}
+
+function updateResults() {
+  const panel = document.getElementById('resultsPanel');
+  const list = document.getElementById('resultsList');
+
+  if (answers.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  list.innerHTML = '';
+
+  answers.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'result-item';
+
+    let badgeClass = 'badge-neither';
+    if (item.type === 'a') badgeClass = 'badge-a';
+    else if (item.type === 'b') badgeClass = 'badge-b';
+    else if (item.type === 'both') badgeClass = 'badge-both';
+
+    row.innerHTML = `
+      <div class="r-cat">${item.category}</div>
+      <div class="r-choice">${item.emoji} ${item.choice}${item.comment ? `<br><span style="font-size:11px;color:#9e7d8e;font-weight:500;">"${escapeHtml(item.comment)}"</span>` : ''}</div>
+      <div class="r-badge ${badgeClass}">${getTypeLabel(item.type)}</div>
+    `;
+
+    list.appendChild(row);
+  });
+}
+
+function getTypeLabel(type) {
+  if (type === 'a') return 'A';
+  if (type === 'b') return 'B';
+  if (type === 'both') return 'İkisi';
+  return 'Heç biri';
+}
+
+function showEnd() {
+  document.getElementById('mainCard').style.display = 'none';
+  document.getElementById('secretCard').style.display = 'none';
+  document.getElementById('gameControls').style.display = 'none';
+  document.getElementById('resultsPanel').style.display = 'none';
+  document.getElementById('progFill').style.width = '100%';
+  document.getElementById('counter').textContent = `${cards.length} / ${cards.length}`;
+
+  const endScreen = document.getElementById('endScreen');
+  endScreen.classList.add('show');
+
+  const commentCount = answers.filter(a => a.comment).length;
+  document.getElementById('endSub').textContent =
+    `Toplam ${answers.length} seçim edildi${commentCount ? ` və ${commentCount} şərh yazıldı` : ''}. Aşağıdakı mətni kopyalayıb göndərə bilərsən.`;
+
+  document.getElementById('copyBox').textContent = buildCopyText();
+}
+
+function buildCopyText() {
+  let text = `Style Quiz nəticələrim ✨\n\n`;
+
+  answers.forEach((item, i) => {
+    text += `${i + 1}. ${item.category}: ${item.choice}`;
+    if (item.comment) {
+      text += `\n   Şərh: ${item.comment}`;
     }
-    answers.push({ cat: c.cat, label, badgeClass, emoji });
-    updateResults();
-    setTimeout(() => {
-      if (currentIndex < cards.length - 1) {
-        currentIndex++;
-        renderCard('right');
-      } else {
-        document.getElementById('progressFill').style.width = '100%';
-        showEndScreen();
-      }
-    }, 600);
-  }
+    text += `\n`;
+  });
 
-  function updateResults() {
-    const list = document.getElementById('resultsList');
-    const panel = document.getElementById('resultsPanel');
-    panel.style.display = 'block';
-    list.innerHTML = answers.slice().reverse().map(a => `
-      <div class="result-item">
-        <div class="result-cat">${a.cat}</div>
-        <div class="result-choice">${a.emoji} ${a.label}</div>
-        <div class="result-badge ${a.badgeClass}">${a.label === 'Heç biri' ? '🙅' : '💕'}</div>
-      </div>
-    `).join('');
-  }
+  return text.trim();
+}
 
-  function buildCopyText() {
-    const lines = ['💄 Mənim Makiyaj Seçimlərim 💄', ''];
-    answers.forEach(a => {
-      lines.push(`${a.cat}: ${a.emoji} ${a.label}`);
-    });
-    lines.push('');
-    const liked = answers.filter(a => a.label !== 'Heç biri');
-    const topBrands = [...new Set(liked.flatMap(a => a.label.split(' & ')))].slice(0, 5);
-    if (topBrands.length > 0) lines.push('⭐ Ən çox bəyəndiklərim: ' + topBrands.join(', '));
-    return lines.join('\n');
-  }
+async function copyResults() {
+  const text = document.getElementById('copyBox').textContent;
+  const copiedMsg = document.getElementById('copiedMsg');
 
-  function showEndScreen() {
-    document.getElementById('mainCard').style.display = 'none';
-    document.getElementById('gameControls').style.display = 'none';
-    document.getElementById('endScreen').classList.add('show');
-    const liked = answers.filter(a => a.label !== 'Heç biri');
-    const topBrands = [...new Set(liked.flatMap(a => a.label.split(' & ')))].slice(0, 4);
-    document.getElementById('endSub').textContent = topBrands.length > 0
-      ? `Ən çox bəyəndiklərin: ${topBrands.join(', ')} 💖`
-      : 'Seçimlər tamamlandı!';
-    document.getElementById('copyBox').textContent = buildCopyText();
+  try {
+    await navigator.clipboard.writeText(text);
+    copiedMsg.classList.add('show');
+    setTimeout(() => copiedMsg.classList.remove('show'), 2200);
+  } catch (e) {
+    fallbackCopy(text);
+    copiedMsg.classList.add('show');
+    setTimeout(() => copiedMsg.classList.remove('show'), 2200);
   }
+}
 
-  function copyResults() {
-    const text = buildCopyText();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(showCopied).catch(fallbackCopy);
-    } else {
-      fallbackCopy();
-    }
-  }
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+}
 
-  function fallbackCopy() {
-    const ta = document.createElement('textarea');
-    ta.value = buildCopyText();
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showCopied();
-  }
+function shuffleCards() {
+  cards = [...cards].sort(() => Math.random() - 0.5);
+  idx = 0;
+  answers = [];
+  resetUIOnly();
+  renderCard('left');
+}
 
-  function showCopied() {
-    const msg = document.getElementById('copiedMsg');
-    msg.classList.add('show');
-    setTimeout(() => msg.classList.remove('show'), 3000);
-  }
+function resetGame() {
+  cards = [...CARDS];
+  idx = 0;
+  answers = [];
+  resetUIOnly();
+  renderCard('left');
+}
 
-  function shuffleCards() {
-    const arr = [...cards];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    cards = arr; currentIndex = 0;
-    document.getElementById('deckLabel').textContent = 'Qarışıq sıra 🔀';
-    renderCard('left');
-  }
+function resetUIOnly() {
+  document.getElementById('mainCard').style.display = 'block';
+  document.getElementById('secretCard').style.display = 'block';
+  document.getElementById('gameControls').style.display = 'block';
+  document.getElementById('resultsPanel').style.display = 'none';
+  document.getElementById('endScreen').classList.remove('show');
+  document.getElementById('copiedMsg').classList.remove('show');
+  document.getElementById('copyBox').textContent = '';
+  document.getElementById('resultsList').innerHTML = '';
+  document.getElementById('progFill').style.width = '0%';
+}
 
-  function resetGame() {
-    cards = [...originalCards]; currentIndex = 0; answers.length = 0;
-    document.getElementById('deckLabel').textContent = 'Keç və öyrən';
-    document.getElementById('endScreen').classList.remove('show');
-    document.getElementById('mainCard').style.display = '';
-    document.getElementById('gameControls').style.display = '';
-    document.getElementById('resultsPanel').style.display = 'none';
-    document.getElementById('resultsList').innerHTML = '';
-    document.getElementById('copiedMsg').classList.remove('show');
-    renderCard('left');
-  }
+function escapeHtml(str) {
+  return str
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
 
-  renderCard();
+renderCard();
 </script>
-</body>
-</html>
